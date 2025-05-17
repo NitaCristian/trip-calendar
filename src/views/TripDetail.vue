@@ -2,7 +2,7 @@
 import {ref, onMounted} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useTripStore} from '../stores/tripStore'
-import type { Trip } from '../stores/tripStore'
+import type {Trip} from '../models/trip.ts'
 
 const route = useRoute()
 const router = useRouter()

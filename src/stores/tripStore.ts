@@ -1,15 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-
-export interface Trip {
-    tripId: string
-    name: string
-    destination: string
-    status: string
-    desiredDuration: string
-    createdAt: string
-    updatedAt: string
-}
+import type {Trip} from '../models/trip.ts'
 
 export const useTripStore = defineStore('tripStore', {
     state: () => ({
@@ -75,5 +66,25 @@ export const useTripStore = defineStore('tripStore', {
 
             }
         },
+
+        async updateTrip(updatedTrip: Trip): Promise<void> {
+            try {
+                const response = await axios.put<Trip>(
+                    `https://2ckijyr7q1.execute-api.us-east-1.amazonaws.com/trips/${updatedTrip.tripId}`,
+                    updatedTrip
+                )
+
+                const index = this.trips.findIndex(t => t.tripId === updatedTrip.tripId)
+                if (index !== -1) {
+                    this.trips[index] = response.data
+                } else {
+                    this.trips.push(response.data)
+                }
+            } catch (err: any) {
+                this.error = err.response?.data?.message || err.message || 'Failed to update trip.'
+                throw new Error(this.error ?? 'Unknown error')
+            }
+        }
+
     },
 })
