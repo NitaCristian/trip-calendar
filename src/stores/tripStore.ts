@@ -36,8 +36,8 @@ export const useTripStore = defineStore('tripStore', {
         },
 
         async deleteTrip(id: string) {
-            await axios.delete(`https://2ckijyr7q1.execute-api.us-east-1.amazonaws.com/trips/${id}`)
             this.trips = this.trips.filter(trip => trip.tripId !== id)
+            await axios.delete(`https://2ckijyr7q1.execute-api.us-east-1.amazonaws.com/trips/${id}`)
         }
     }
 })
