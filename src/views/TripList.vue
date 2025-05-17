@@ -10,11 +10,12 @@ onMounted(() => {
   store.fetchTrips()
 })
 
-const goToEdit = (id: string) => router.push(`/edit/${id}`)
+const goToEdit = (tripId: string) => router.push(`/edit/${tripId}`)
 const goToCreate = () => router.push('/create')
-const deleteTrip = async (id: string) => {
+const goToDetail = (tripId: string) => router.push(`/trip/${tripId}`)
+const deleteTrip = async (tripId: string) => {
   if (confirm('Delete this trip?')) {
-    await store.deleteTrip(id)
+    await store.deleteTrip(tripId)
   }
 }
 </script>
@@ -59,17 +60,14 @@ const deleteTrip = async (id: string) => {
         <td class="p-3 border-b">{{ new Date(trip.createdAt).toLocaleDateString() }}</td>
         <td class="p-3 border-b">{{ new Date(trip.updatedAt).toLocaleDateString() }}</td>
         <td class="p-3 border-b space-x-2">
-          <button
-              @click="goToEdit(trip.tripId)"
-              class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
-          >
-            Edit
+          <button @click="goToEdit(trip.tripId)"
+                  class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition">Edit
           </button>
-          <button
-              @click="deleteTrip(trip.tripId)"
-              class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
-          >
-            Delete
+          <button @click="deleteTrip(trip.tripId)"
+                  class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition">Delete
+          </button>
+          <button @click="goToDetail(trip.tripId)"
+                  class="bg-gray-500 text-white px-2 py-1 rounded hover:bg-gray-600 transition">View
           </button>
         </td>
       </tr>
