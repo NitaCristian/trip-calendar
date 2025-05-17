@@ -1,7 +1,7 @@
+<!-- CreateTripView.vue -->
 <script setup lang="ts">
 import {ref} from 'vue'
 import {useRouter} from 'vue-router'
-import axios from 'axios'
 import {useTripStore} from '../stores/tripStore'
 
 const router = useRouter()
@@ -11,7 +11,6 @@ const name = ref('')
 const destination = ref('')
 const status = ref('')
 const desiredDuration = ref('')
-
 const error = ref<string | null>(null)
 const submitting = ref(false)
 
@@ -20,21 +19,16 @@ const createTrip = async () => {
   error.value = null
 
   try {
-    const payload = {
+    await store.createTrip({
       name: name.value,
       destination: destination.value,
       status: status.value,
-      desiredDuration: desiredDuration.value
-    }
-
-    const response = await axios.post('https://2ckijyr7q1.execute-api.us-east-1.amazonaws.com/trips', payload)
-    const newTrip = response.data
-
-    store.trips.push(newTrip)
-
+      desiredDuration: desiredDuration.value,
+      createdBy: 'Cristian Nita'
+    })
     await router.push('/')
   } catch (err: any) {
-    error.value = err.response?.data?.message || err.message || 'Failed to create trip.'
+    error.value = err.message
     console.error(err)
   } finally {
     submitting.value = false

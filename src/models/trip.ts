@@ -6,4 +6,5 @@ export interface Trip {
     desiredDuration: string
     createdAt: string
     updatedAt: string
+    createdBy: string
 }

@@ -1,6 +1,8 @@
-import { defineStore } from 'pinia'
+import {defineStore} from 'pinia'
 import axios from 'axios'
-import type {Trip} from '../models/trip.ts'
+import type {Trip} from '../models/trip'
+
+const API_BASE = 'https://2ckijyr7q1.execute-api.us-east-1.amazonaws.com/trips'
 
 export const useTripStore = defineStore('tripStore', {
     state: () => ({
@@ -13,18 +15,13 @@ export const useTripStore = defineStore('tripStore', {
     actions: {
         async fetchTrips(force = false) {
             if (this.trips.length > 0 && !force) return
-
             this.loading = true
             this.error = null
 
             try {
-                const response = await axios.get<Trip[]>('https://2ckijyr7q1.execute-api.us-east-1.amazonaws.com/trips')
+                const response = await axios.get<Trip[]>(API_BASE)
                 this.trips = response.data
-                this.tripsById = {}
-
-                for (const trip of this.trips) {
-                    this.tripsById[trip.tripId] = trip
-                }
+                this.tripsById = Object.fromEntries(response.data.map(trip => [trip.tripId, trip]))
             } catch (err: any) {
                 this.error = err.response?.data?.message || err.message || 'Failed to fetch trips.'
             } finally {
@@ -33,58 +30,58 @@ export const useTripStore = defineStore('tripStore', {
         },
 
         async fetchTrip(id: string, force = false): Promise<Trip> {
-            if (this.tripsById[id] && !force) {
-                return this.tripsById[id]
-            }
+            if (this.tripsById[id] && !force) return this.tripsById[id]
 
             try {
-                const response = await axios.get<Trip>(`https://2ckijyr7q1.execute-api.us-east-1.amazonaws.com/trips/${id}`)
+                const response = await axios.get<Trip>(`${API_BASE}/${id}`)
                 const trip = response.data
                 this.tripsById[id] = trip
 
-                // Optional: update trips list if it’s missing
-                const exists = this.trips.find(t => t.tripId === id)
-                if (!exists) this.trips.push(trip)
-
+                if (!this.trips.find(t => t.tripId === id)) this.trips.push(trip)
                 return trip
             } catch (err: any) {
                 throw new Error(err.response?.data?.message || err.message || 'Failed to fetch trip.')
             }
         },
 
-        async deleteTrip(id: string) {
-            // Optimistic local update
-            this.trips = this.trips.filter(trip => trip.tripId !== id)
-            delete this.tripsById[id]
-
+        async createTrip(payload: Omit<Trip, 'tripId' | 'createdAt' | 'updatedAt'>): Promise<Trip> {
             try {
-                await axios.delete(`https://2ckijyr7q1.execute-api.us-east-1.amazonaws.com/trips/${id}`)
+                const response = await axios.post<Trip>(API_BASE, payload)
+                const newTrip = response.data
+                this.trips.push(newTrip)
+                this.tripsById[newTrip.tripId] = newTrip
+                return newTrip
             } catch (err: any) {
-                const message = err.response?.data?.message || err.message || 'Failed to delete trip.'
-                this.error = message
-                throw new Error(message)
-
+                this.error = err.response?.data?.message || err.message || 'Failed to create trip.'
+                throw new Error(this.error ?? 'Unknown error')
             }
         },
 
         async updateTrip(updatedTrip: Trip): Promise<void> {
             try {
-                const response = await axios.put<Trip>(
-                    `https://2ckijyr7q1.execute-api.us-east-1.amazonaws.com/trips/${updatedTrip.tripId}`,
-                    updatedTrip
-                )
+                const response = await axios.put<Trip>(`${API_BASE}/${updatedTrip.tripId}`, updatedTrip)
+                const updated = response.data
 
-                const index = this.trips.findIndex(t => t.tripId === updatedTrip.tripId)
-                if (index !== -1) {
-                    this.trips[index] = response.data
-                } else {
-                    this.trips.push(response.data)
-                }
+                this.tripsById[updated.tripId] = updated
+                const index = this.trips.findIndex(t => t.tripId === updated.tripId)
+                if (index !== -1) this.trips[index] = updated
+                else this.trips.push(updated)
             } catch (err: any) {
                 this.error = err.response?.data?.message || err.message || 'Failed to update trip.'
                 throw new Error(this.error ?? 'Unknown error')
             }
-        }
+        },
 
-    },
+        async deleteTrip(id: string) {
+            this.trips = this.trips.filter(trip => trip.tripId !== id)
+            delete this.tripsById[id]
+
+            try {
+                await axios.delete(`${API_BASE}/${id}`)
+            } catch (err: any) {
+                this.error = err.response?.data?.message || err.message || 'Failed to delete trip.'
+                throw new Error(this.error ?? 'Unknown error')
+            }
+        },
+    }
 })
