@@ -26,7 +26,7 @@ const createTrip = async () => {
       desiredDuration: desiredDuration.value,
       createdBy: 'Cristian Nita'
     })
-    await router.push('/')
+    await router.push({ path: '/', state: { refreshTrips: true } })
   } catch (err: any) {
     error.value = err.message
     console.error(err)

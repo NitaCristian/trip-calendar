@@ -6,8 +6,10 @@ import {useTripStore} from '../stores/tripStore'
 const router = useRouter()
 const store = useTripStore()
 
-onMounted(() => {
-  store.fetchTrips()
+onMounted(async () => {
+  const needsRefresh = !!router.options.history.state.refreshTrips
+  await store.fetchTrips(needsRefresh)
+  router.options.history.state.refreshTrips = false
 })
 
 const goToEdit = (tripId: string) => router.push(`/edit/${tripId}`)

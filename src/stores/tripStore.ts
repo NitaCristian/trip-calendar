@@ -10,27 +10,35 @@ export const useTripStore = defineStore('tripStore', {
         tripsById: {} as Record<string, Trip>,
         loading: false,
         error: null as string | null,
+        lastFetchedAt: null as number | null
     }),
 
     actions: {
         async fetchTrips(force = false) {
-            if (this.trips.length > 0 && !force) return
+            const stale = !this.lastFetchedAt || Date.now() - this.lastFetchedAt > 60_000 // 1 minute
+            if (this.trips.length > 0 && !force && !stale) return
+
             this.loading = true
             this.error = null
 
             try {
                 const response = await axios.get<Trip[]>(API_BASE)
                 this.trips = response.data
-                this.tripsById = Object.fromEntries(response.data.map(trip => [trip.tripId, trip]))
+                this.tripsById = Object.fromEntries(this.trips.map(trip => [trip.tripId, trip]))
+                this.lastFetchedAt = Date.now()
             } catch (err: any) {
-                this.error = err.response?.data?.message || err.message || 'Failed to fetch trips.'
+                this.error = err.response?.data?.message || err.message
             } finally {
                 this.loading = false
             }
         },
 
         async fetchTrip(id: string, force = false): Promise<Trip> {
-            if (this.tripsById[id] && !force) return this.tripsById[id]
+            const stale = !this.lastFetchedAt || Date.now() - this.lastFetchedAt > 60_000 // 1 minute
+            if (this.trips.length > 0 && !force && !stale) return this.tripsById[id]
+
+            this.loading = true
+            this.error = null
 
             try {
                 const response = await axios.get<Trip>(`${API_BASE}/${id}`)
@@ -40,7 +48,10 @@ export const useTripStore = defineStore('tripStore', {
                 if (!this.trips.find(t => t.tripId === id)) this.trips.push(trip)
                 return trip
             } catch (err: any) {
-                throw new Error(err.response?.data?.message || err.message || 'Failed to fetch trip.')
+                this.error = err.response?.data?.message || err.message
+                throw new Error(this.error ?? 'Failed to fetch trip.')
+            } finally {
+                this.loading = false
             }
         },
 
@@ -52,8 +63,8 @@ export const useTripStore = defineStore('tripStore', {
                 this.tripsById[newTrip.tripId] = newTrip
                 return newTrip
             } catch (err: any) {
-                this.error = err.response?.data?.message || err.message || 'Failed to create trip.'
-                throw new Error(this.error ?? 'Unknown error')
+                this.error = err.response?.data?.message || err.message
+                throw new Error(this.error ?? 'Failed to create trip.')
             }
         },
 
@@ -67,8 +78,8 @@ export const useTripStore = defineStore('tripStore', {
                 if (index !== -1) this.trips[index] = updated
                 else this.trips.push(updated)
             } catch (err: any) {
-                this.error = err.response?.data?.message || err.message || 'Failed to update trip.'
-                throw new Error(this.error ?? 'Unknown error')
+                this.error = err.response?.data?.message || err.message
+                throw new Error(this.error ?? 'Failed to update trip.')
             }
         },
 
@@ -79,8 +90,8 @@ export const useTripStore = defineStore('tripStore', {
             try {
                 await axios.delete(`${API_BASE}/${id}`)
             } catch (err: any) {
-                this.error = err.response?.data?.message || err.message || 'Failed to delete trip.'
-                throw new Error(this.error ?? 'Unknown error')
+                this.error = err.response?.data?.message || err.message
+                throw new Error(this.error ?? 'Failed to delete trip.')
             }
         },
     }
