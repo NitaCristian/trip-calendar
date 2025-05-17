@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useTripStore } from '../stores/tripStore'
+import {onMounted} from 'vue'
+import {useRouter} from 'vue-router'
+import {useTripStore} from '../stores/tripStore'
 
 const router = useRouter()
 const store = useTripStore()
@@ -19,112 +19,61 @@ const deleteTrip = async (id: string) => {
 }
 </script>
 
-
 <template>
-  <div class="trip-list">
-    <header class="header">
-      <h1>Trips</h1>
-      <button @click="goToCreate" class="create-btn">+ New Trip</button>
+  <div class="p-8 bg-white min-h-screen">
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Trips</h1>
+      <button
+          @click="goToCreate"
+          class="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600 transition"
+      >
+        + New Trip
+      </button>
     </header>
 
-    <div v-if="store.loading">Loading...</div>
-    <div v-else-if="store.error">{{ store.error }}</div>
-    <table v-else>
+    <div v-if="store.loading" class="text-lg font-medium text-gray-500">Loading...</div>
+    <div v-else-if="store.error" class="text-red-500 font-medium">{{ store.error }}</div>
+
+    <table v-else class="w-full table-auto border-collapse shadow text-sm">
       <thead>
-      <tr>
-        <th>Name</th>
-        <th>Destination</th>
-        <th>Status</th>
-        <th>Duration (days)</th>
-        <th>Created At</th>
-        <th>Updated At</th>
-        <th>Actions</th>
+      <tr class="bg-gray-100 text-left">
+        <th class="p-3 border-b">Name</th>
+        <th class="p-3 border-b">Destination</th>
+        <th class="p-3 border-b">Status</th>
+        <th class="p-3 border-b">Duration (days)</th>
+        <th class="p-3 border-b">Created At</th>
+        <th class="p-3 border-b">Updated At</th>
+        <th class="p-3 border-b">Actions</th>
       </tr>
       </thead>
       <tbody>
-      <tr v-for="trip in store.trips" :key="trip.tripId">
-        <td>{{ trip.name }}</td>
-        <td>{{ trip.destination }}</td>
-        <td>{{ trip.status }}</td>
-        <td>{{ trip.desiredDuration }}</td>
-        <td>{{ new Date(trip.createdAt).toLocaleDateString() }}</td>
-        <td>{{ new Date(trip.updatedAt).toLocaleDateString() }}</td>
-        <td>
-          <button @click="goToEdit(trip.tripId)">Edit</button>
-          <button @click="deleteTrip(trip.tripId)" class="delete">Delete</button>
+      <tr
+          v-for="trip in store.trips"
+          :key="trip.tripId"
+          class="hover:bg-gray-50 transition"
+      >
+        <td class="p-3 border-b">{{ trip.name }}</td>
+        <td class="p-3 border-b">{{ trip.destination }}</td>
+        <td class="p-3 border-b">{{ trip.status }}</td>
+        <td class="p-3 border-b">{{ trip.desiredDuration }}</td>
+        <td class="p-3 border-b">{{ new Date(trip.createdAt).toLocaleDateString() }}</td>
+        <td class="p-3 border-b">{{ new Date(trip.updatedAt).toLocaleDateString() }}</td>
+        <td class="p-3 border-b space-x-2">
+          <button
+              @click="goToEdit(trip.tripId)"
+              class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
+          >
+            Edit
+          </button>
+          <button
+              @click="deleteTrip(trip.tripId)"
+              class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
+          >
+            Delete
+          </button>
         </td>
       </tr>
       </tbody>
     </table>
   </div>
 </template>
-
-<style scoped>
-.trip-list {
-  padding: 2rem;
-  background: #fff;
-  min-height: 100vh;
-  box-sizing: border-box;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.create-btn {
-  padding: 0.5rem 1rem;
-  background-color: #42b883;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.create-btn:hover {
-  background-color: #369973;
-}
-
-table {
-  color: #333;
-  width: 100%;
-  border-collapse: collapse;
-  background-color: white;
-  box-shadow: 0 0 5px rgba(0,0,0,0.05);
-}
-
-th, td {
-  padding: 0.75rem;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
-}
-
-th {
-  background-color: #f9f9f9;
-}
-
-button {
-  padding: 0.3rem 0.6rem;
-  margin-right: 0.5rem;
-  font-size: 0.85rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button:hover {
-  opacity: 0.8;
-}
-
-button.delete {
-  background-color: #e74c3c;
-  color: white;
-}
-
-.loading, .error {
-  padding: 1rem;
-  font-size: 1.2rem;
-}
-</style>
